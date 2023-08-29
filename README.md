@@ -5,9 +5,9 @@ Projet codé en PHP, sur un modèle MVC, avec création d'un CRUD pour gérer en
 ## Installation en local
 
 ### Pré-requis
-Avoir installé un logiciel permettant d'initialiser un serveur en local, tel que WAMP ou MAMP
+Avoir installé un logiciel permettant d'initialiser un serveur en local, tel que WAMP ou MAMP.
 
-Avoir installé HeidiSQL (MariaDB)
+Avoir installé HeidiSQL (MariaDB).
 
 ### Cloner le projet 
 
