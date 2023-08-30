@@ -1,0 +1,384 @@
+CREATE DATABASE if NOT EXISTS spy_agency CHARACTER SET = 'utf8mb4' COLLATE = 'UTF8MB4_GENERAL_CI';
+
+CREATE TABLE nationality 
+(
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	name VARCHAR(50) NOT NULL
+)
+ENGINE = INNODB;
+
+CREATE TABLE speciality 
+(
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	name VARCHAR(50) NOT NULL,
+	description TEXT NOT NULL
+)
+ENGINE = INNODB;
+
+CREATE TABLE missionType
+(
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	name VARCHAR(50) NOT NULL
+)
+ENGINE = INNODB; 
+
+CREATE TABLE missionStatus 
+(
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	name VARCHAR(50) NOT NULL
+)
+ENGINE = INNODB; 
+
+CREATE TABLE country
+(
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	name VARCHAR(50) NOT NULL
+)
+ENGINE = INNODB; 
+
+CREATE TABLE user
+(
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	lastName VARCHAR(50) NOT NULL,
+	firstName VARCHAR(50) NOT NULL,
+	email VARCHAR(254) NOT NULL UNIQUE,
+	password VARCHAR(60) NOT NULL,
+	createdAt DATETIME NOT NULL DEFAULT NOW(),
+	role JSON NOT NULL
+)
+ENGINE = INNODB;
+
+CREATE TABLE agent 
+(
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	lastName VARCHAR(50) NOT NULL,
+	firstName VARCHAR(50) NOT NULL,
+	birthdate DATE NOT NULL,
+	identificationCode INT(3) NOT NULL UNSIGNED ZEROFILL,
+	idNationality INT NOT NULL,
+	FOREIGN KEY (idNationality) REFERENCES nationality(id) 
+		ON UPDATE CASCADE,
+		ON DELETE CASCADE
+)
+ENGINE = INNODB;
+
+CREATE TABLE agentSpeciality
+(
+	idAgent INT NOT NULL,
+	idSpeciality INT NOT NULL, 
+	FOREIGN KEY (idAgent) REFERENCES agent(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (idSpeciality) REFERENCES speciality(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = innodb;
+
+CREATE TABLE contact
+(
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
+	lastName VARCHAR(50) NOT NULL,
+	firstName VARCHAR(50) NOT NULL,
+	birthdate DATE NOT NULL,
+	codeName VARCHAR(50) NOT NULL,
+	idNationality INT NOT NULL,
+	FOREIGN KEY (idNationality) REFERENCES nationality(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = INNODB;
+
+CREATE TABLE target
+(
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
+	lastName VARCHAR(50) NOT NULL,
+	firstName VARCHAR(50) NOT NULL,
+	birthdate DATE NOT NULL,
+	codeName VARCHAR(50) NOT NULL,
+	idNationality INT NOT NULL,
+	FOREIGN KEY (idNationality) REFERENCES nationality(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = INNODB;
+
+CREATE TABLE hideout
+(
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
+	code INT NOT NULL UNIQUE,
+	address VARCHAR(100) NOT NULL,
+	type VARCHAR(50) NOT NULL,
+	idCountry INT NOT NULL,
+	FOREIGN KEY (idCountry) REFERENCES country(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = INNODB;
+
+CREATE TABLE mission
+(
+	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
+	title VARCHAR(50) NOT NULL,
+	description TEXT NOT NULL,
+	codeName VARCHAR(50) NOT NULL,
+	beginsAt DATE NOT NULL,
+	endsAt DATE NOT NULL,
+	idMissionType INT NOT NULL, 
+	idMissionStatus INT NOT NULL, 
+	idCountry INT NOT NULL,
+	idSpeciality INT NOT NULL,
+	FOREIGN KEY (idMissionType) REFERENCES missionType(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (idMissionStatus) REFERENCES missionStatus(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (idCountry) REFERENCES country(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (idSpeciality) REFERENCES speciality(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = INNODB;
+
+CREATE TABLE missionAgent
+(
+	idMission INT NOT NULL,
+	idAgent INT NOT NULL,
+	FOREIGN KEY (idMission) REFERENCES mission(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN key (idAgent) REFERENCES agent(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = INNODB;
+
+CREATE TABLE missionContact
+(
+	idMission INT NOT NULL,
+	idContact INT NOT NULL,
+	FOREIGN KEY (idMission) REFERENCES mission(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN key (idContact) REFERENCES contact(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = INNODB;
+
+CREATE TABLE missionTarget
+(
+	idMission INT NOT NULL,
+	idTarget INT NOT NULL,
+	FOREIGN KEY (idMission) REFERENCES mission(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN key (idTarget) REFERENCES target(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = INNODB;
+
+CREATE TABLE missionSpeciality
+(
+	idMission INT NOT NULL,
+	idSpeciality INT NOT NULL,
+	FOREIGN KEY (idMission) REFERENCES mission(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN key (idSpeciality) REFERENCES speciality(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = INNODB;
+
+CREATE TABLE missionHideout
+(
+	idMission INT NOT NULL,
+	idHideout INT NOT NULL,
+	FOREIGN KEY (idMission) REFERENCES mission(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN key (idHideout) REFERENCES hideout(id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = INNODB;
+
+INSERT INTO user(lastName, firstName, email, password, role) VALUES ('Casey', 'William', 'williamcasey@spyagency.sa', '$2y$10$QBS9twIzhqDs05YyI26qGuChGolAEk29TqUJKR1xCaFW4KIpDhczK', '["ROLE_ADMIN"]');	
+
+INSERT INTO country (name) VALUES ('France'), ('Russie'), ('USA'), ('Italie'), ('Espagne'), ('Iran'), ('Pays-Bas'), ('Chili'), ('Israël'), ('Allemagne'), ('Chine'), ('Colombie'), ('Belgique');
+
+INSERT INTO speciality (name, description) 
+VALUES 
+('Assassinat discret', 'Permet d''assassiner la cible sans se faire repérer'), 
+('Art du déguisement', 'Maîtrise des déguisements, divers accessoires et du camouflage'),
+('Fuite rapide', 'Permet de s''échapper très rapidement lors d''une mission en terrain hostile'),
+('Persuasion', 'Permet de convaincre la cible de livrer des informations, avant son issue fatale, car elle est toujours fatale...'),
+('Super charisme', 'Besoin d''une info, de charmer, de convaincre ? Tout est possible grâce au super charisme'),
+('Doigts d''argent', 'Maîtrise des couteaux et divers objets tranchants');
+
+INSERT INTO nationality (name) 
+VALUES 
+('France'), 
+('Russie'), 
+('USA'), 
+('Italie'), 
+('Espagne'), 
+('Iran'), 
+('Pays-Bas'), 
+('Chili'),
+('Belgique'), 
+('Turquie'), 
+('Suède'), 
+('Mexique'), 
+('Canada');
+	
+INSERT INTO missionStatus (name) 
+VALUES 
+('en cours'), 
+('terminée'), 
+('en attente'), 
+('échec')
+;
+
+INSERT INTO agent (lastName, firstName, birthdate, identificationCode, idNationality) 
+VALUES 
+('Doe', 'John', '1985-10-23', 345, 3),
+('Dupond', 'Jean', '1989-03-15', 123, 1),
+('Dimitrov', 'Alexeï', '1987-07-07', 774, 2),
+('Rana', 'Gianna', '1993-11-22', 009, 4),
+('Kahani', 'Milad', '1995-08-26', 224, 6),
+('Castillo', 'Carmen', '1983-02-11', 016, 8),
+('Coste', 'Victor', '1980-04-16', 945, 1),
+('Craighead', 'Nikki', '1984-08-09', 994, 3),
+('Grisley', 'Whitby', '1981-10-14', 443, 13),
+('Collum', 'Nikolaus', '1994-11-04', 349, 9),
+('Rollingson', 'Matti', '1989-09-26', 646, 11),
+('Beau', 'Conan', '1991-07-01', 373, 13),
+('Aleksahkin', 'Marco', '2003-03-22', 946, 5),
+('Juschke', 'Garv', '1982-03-25', 308, 2),
+('Vail', 'Kahaleel', '1992-07-11', 049, 10)
+;
+
+INSERT INTO agentSpeciality (idAgent, idSpeciality) VALUES 
+(1, 1),
+(2, 3),
+(2, 5),
+(3, 4),
+(4, 2),
+(4, 5),
+(5, 2),
+(5, 6),
+(6, 3),
+(7, 2),
+(7, 4),
+(8, 4),
+(9, 4),
+(9, 5),
+(10, 1),
+(11, 3),
+(12, 6),
+(13, 2),
+(13, 3),
+(14, 1),
+(15, 6)
+; 
+
+INSERT INTO contact (lastName, firstName, birthdate, codeName, idNationality)
+VALUES 
+('Després', 'Roger', '1987-01-25', 'La Fouine', 1), 
+('Meyer', 'Kevin', '1997-05-10', 'Snitch', 3),
+('Plomo', 'Mario', '1984-12-26', 'Narcos', 8), 
+('Dimitriska', 'Petrova', '1996-07-09', 'La Veuve Noire', 2),
+('Kamali', 'Faraz', '1968-02-15', 'Le Patron', 6),
+('Gustavsson', 'Carl', '1988-06-03', 'Le Viking', 11),
+('Consort', 'Kevin', '1977-11-23', 'La sangsue', 1),
+('Kenan', 'Turan', '1989-12-01', 'Bachibouzouk', 10),
+('Decleir', 'Jan', '1979-01-26', 'Waterloo', 9),
+('Sepulveda', 'Luis', '1973-07-28', 'Le Conteur', 8),
+('Carapelli', 'Angelo', '1985-08-12', 'Pavarotti', 4),
+('Zoppini', 'Angela', '1976-11-28', 'Mama', 5),
+('Koppek', 'Dan', '1965-02-09', 'Tulipe', 7),
+('Felipe', 'Juan', '1988-05-15', 'El Diablo', 12),
+('Gagnon', 'Justin', '1984-03-20', 'Le bûcheron', 13)
+; 
+
+INSERT INTO hideout (code, address, type, idCountry)
+VALUES
+(1234, '23 rue du Paradis, 75012 Paris', 'appartement', 1),
+(3675, '1570 Oak Street, 94016 San Francisco', 'maison', 3), 
+(4768, 'Masterskaya Bdg 3, Moscou', 'chambre d''hôtel', 2),
+(9964, '56 Via Roma, Naples', 'cave', 4),
+(4978, '61B Glienicker Strasse, Berlin', 'appartement', 10),
+(3364, 'Qing Nian Lu 450, Pékin', 'immeuble désaffecté', 11),
+(7123, 'Inglaterra 25, Madrid', 'cave', 5),
+(3496, '37 Hayam Road, Tel-Aviv', 'appartement', 9),
+(7701, '185 Viale Cortina d''Ampezzo, Rome', 'maison', 4),
+(6910, 'Strepestraat 404, Liège', 'hôpital désaffecté', 13),
+(2246, 'Sad Gheysari Alley, Téhéran', 'ambassade', 6),
+(4321, 'Grotestraat 80, Amsterdam', 'maison', 7),
+(5579, 'Seeduker 60, Rotterdam', 'entrepôt désaffecté', 7),
+(8888, 'Santa Elena Norte, Santiago', 'appartement', 8),
+(3461, 'Rio de Oro 555, Cali', 'école', 12)
+;
+
+INSERT INTO missionType (name) 
+VALUES 
+('Assassinat'), 
+('Vol de données sensibles'), 
+('Extorsion'), 
+('Kidnapping'),
+('Infiltration'),
+('Sous couverture'),
+('Dégradation'),
+('Propagande');
+
+INSERT INTO target (lastName, firstName, birthdate, codeName, idNationality)
+VALUES
+('Jones', 'Dorothy', '1986-02-16', 'Fantôme', 3),
+('Tchaïkovski', 'Romuald', '1983-08-12', 'Maître d''orchestre', 2),
+('Desmontour', 'Roger', '1967-10-20', 'Monocle', 1),
+('Backus', 'Robert', '1970-04-16', 'Le Poète', 3),
+('Mesrine', 'Jacques', '1979-11-02', 'Ennemi public', 1),
+('Rotondo', 'Gianni', '1980-12-14', 'La Vespa', 4),
+('Vanderdendur', 'Dan', '1992-12-12', 'Le Négociant', 7),
+('De Vries', 'Marieke', '2005-06-06', 'Dutchess', 9),
+('Capricia', 'Maria', '1986-02-16', 'Précieuse', 5),
+('Williams', 'Jérôme', '1987-04-24', 'Feuille d''érable', 13),
+('Tomes', 'Donetta', '1991-05-26', 'Done', 8),
+('Bilfoot', 'Elberta', '1999-10-25', 'La Bile', 6),
+('Odde', 'Bessie', '1990-01-10', 'Scand', 11),
+('Giacobillo', 'Rosalinde', '1982-11-13', 'Precious Rose', 12),
+('Skyrm', 'Ogdan', '1989-12-13', 'L''Ogre', 10)
+;
+
+
+INSERT INTO mission (title, description, codeName, beginsAt, endsAt, idMissionType, idMissionStatus, idCountry, idSpeciality)
+VALUES
+('La chasse au fantôme est ouverte', 'Dorothy Jones est une figure importante aux USA, et elle ne laisse que peu de traces de ses transactions illégales. Trouvez un moyen de la faire parler.', 'Ghostbusters', '2023-08-09', '2023-08-10', 3, 4, 3, 5),
+('Voler les plans du réacteur nucléaire', 'S''introduire dans le réacteur, et voler les plans cachés dans le service scientifique. Meurtre si nécessaire', 'Nuclear', '2023-08-18', '2023-08-21', 2, 2, 1, 3),
+('Demande de rançon', 'Après avoir kidnappé la fille chérie du ministre de l\'intérieur belge, procéder à la demande de rançon de 500 000€.', 'Paytime', '2023-08-30', '2023-09-09', 4, 1, 13, 4),
+('Non è la Dolce Vita', 'Gianni Rotondo, directeur du service de renseignement italien, est responsable de la perte de l\'un des nôtres. Cette année, il passe ses vacances au Chili, avec ses proches. Il est temps de lui rendre la monnaie de sa pièce.', 'Vengeance', '2023-08-26', '2023-08-26', 1, 1, 8, 1),
+('Annihilation totale', 'Assassinat de la cible et de tout témoin potentiel', 'Wipeout', '2023-08-18', '2023-08-21', 1, 1, 2, 1),
+('Tour, un petit tour', 'Odde Bessie, célèbre hackeur suédois, se planque à Rome. Il faut se débarasser de lui, il en sait trop.', 'Manège', '2023-08-01', '2023-08-02', 1, 2, 4, 2),
+('Nouvelle identité sous couverture', 'Faites-vous passer pour un riche homme d\'affaires afin de rentrer en contact avec la cible. Une fois le contact établi, disparaissez rapidement afin de ne pas éveiller les soupçons.', 'Upgrade', '2023-08-10', '2023-08-14', 6, 2, 5, 3),
+('Retour sur les bancs de la fac', 'La cible est un professeur controversé qui enseigne à l\'université de Téhéran, et qui distille certaines idées bien arrêtées sur le gouvernement iranien. Rapprochez-vous de ses élèves, et engrenez-les afin qu\'ils manifestes contre ces idées.', 'Liberté', '2023-08-15', '2023-08-17', 8, 2, 6, 5),
+('Trouver, casser, se sauver', 'La cible gère son trafic depuis un entrepôt situé sur le port d\'Amsterdam. Faites en sorte que cet entrepôt soit inutilisable, afin que la cible ne puisse plus continuer. Ne vous faites pas prendre !! ', 'Warehouse', '2023-07-27', '2023-07-30', 7, 4, 7, 6),
+('D''une pierre deux coups', 'Le couple Jérôme - Maria, dirigeants de la société MPC, sont soupçonnés de détournement de fonds. Infiltrez leur société et trouvez un maximum de renseignements.', 'Stone', '2023-10-09', '2023-10-15', 5, 3, 1, 2)
+;
+
+INSERT INTO missionAgent (idMission, idAgent) VALUES 
+(1, 2),
+(1, 4),
+(2, 6),
+(2, 7),
+(3, 9),
+(3, 12),
+(4, 3),
+(4, 14),
+(5, 2),
+(5, 3),
+(6, 5),
+(7, 11),
+(8, 9),
+(9, 15),
+(10, 4),
+(10, 7);
+; 
+
+INSERT INTO missionTarget (idMission, idTarget) VALUES 
+(1, 1),
+(2, 2),	
+(3, 8),
+(4, 6),	
+(5, 1),
+(6, 13),
+(7, 14),
+(8, 12),
+(9, 7),
+(10, 9),
+(10, 10)
+;
+ 
+
+INSERT INTO missionHideout (idMission, idHideout) VALUES 
+(1, 2),
+(2, 1),
+(3, 10),
+(6, 9),
+(7, 7),
+(8, 11),
+(9, 12),
+(9, 13),
+(10, 1);
+
+INSERT INTO missionContact (idMission, idContact) VALUES 
+(1, 4), 
+(2, 1), 
+(2, 7),
+(3, 9),
+(4, 3),
+(4, 10),
+(5, 4),
+(6, 11),
+(7, 12),
+(8, 5),
+(9, 13),
+(10, 1),
+(10, 7);
